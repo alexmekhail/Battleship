@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Battleship</title>
+<link rel="stylesheet" href="battleship.css">
+</head>
+<body>
+
+<h1>Battleship</h1>
+
+<div class="buttons">
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="restartGame()">Restart</button>
+</div>
+
+
+<div class="canvas-container">
+    <div>
+        <canvas id="Player1" width="550" height="550" ondrop="drop(event)" ondragover="allowDrop(event)"></canvas>
+        <div class="board-label">Your Grid</div>
+    </div>
+    <div>
+        <canvas id="Player2" width="550" height="550" onclick="playerGuess(event)"></canvas>
+        <div class="board-label">Opponent's Grid</div>
+    </div>
+</div>
+
+<div class="grid">
+    <div id="playerShips">
+        <canvas id="red5" draggable="true" ondragstart="drag(event)" width="50" height="250" style="background-color: #FF0000; border: 3px solid black"></canvas>
+        <canvas id="red4" draggable="true" ondragstart="drag(event)" width="200" height="50" style="background-color: #FF0000; border: 3px solid black"></canvas>
+        <canvas id="red3" draggable="true" ondragstart="drag(event)" width="50" height="200" style="background-color: #FF0000; border: 3px solid black"></canvas>
+        <canvas id="red2" draggable="true" ondragstart="drag(event)" width="150" height="50" style="background-color: #FF0000; border: 3px solid black"></canvas>
+        <canvas id="red1" draggable="true" ondragstart="drag(event)" width="50" height="100" style="background-color: #FF0000; border: 3px solid black"></canvas>
+    </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
