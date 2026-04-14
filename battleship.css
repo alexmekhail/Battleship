@@ -1,46 +1,429 @@
+/* ==========================================
+   BATTLESHIP — Naval Theme Stylesheet
+   ========================================== */
+
+/* === RESET & CUSTOM PROPERTIES === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cell-size:       44px;
+  --row-label-w:     28px;
+  --col-label-h:     24px;
+
+  --ocean-deep:      #0a1628;
+  --ocean-mid:       #0d2137;
+  --ocean-light:     #1a3a5c;
+  --ocean-cell:      #1e4976;
+  --ocean-hover:     #2a6099;
+  --water-line:      #2d5986;
+
+  --hit-bg:          #8b1a1a;
+  --sunk-bg:         #5a0f0f;
+  --miss-bg:         #3d5a6a;
+  --ship-bg:         #4a5568;
+  --ship-border:     #718096;
+
+  --gold:            #f0c040;
+  --green:           #27ae60;
+  --red:             #e74c3c;
+
+  --text-light:      #e8f4fd;
+  --text-muted:      #7ba3c0;
+
+  --preview-valid:   rgba(39,174,96,0.55);
+  --preview-invalid: rgba(231,76,60,0.55);
+}
+
+/* === BASE === */
+html, body { height: 100%; }
+
+body {
+  background: var(--ocean-deep);
+  color: var(--text-light);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* === HEADER === */
+.game-header {
+  text-align: center;
+  padding: 14px 20px 6px;
+  border-bottom: 1px solid var(--water-line);
+}
+
 h1 {
-    margin-left: 30px;
-    font-size: 60px;
-    margin-top: 2px;
+  font-size: clamp(1.8rem, 5vw, 3.2rem);
+  color: var(--gold);
+  letter-spacing: 4px;
+  text-shadow: 0 2px 12px rgba(240,192,64,0.35);
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
-.canvas-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 50px; 
-    margin-bottom: 10px; 
+/* === STATUS BANNER === */
+.status-banner {
+  margin: 8px auto 0;
+  max-width: 420px;
+  padding: 8px 22px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-align: center;
+  transition: background 0.3s, color 0.3s;
+}
+.status-banner.placement-phase { background: var(--ocean-light); color: var(--text-light); border: 1px solid var(--water-line); }
+.status-banner.player-turn     { background: var(--green);        color: #fff; box-shadow: 0 0 14px rgba(39,174,96,0.4); }
+.status-banner.computer-turn   { background: var(--red);          color: #fff; animation: pulse 0.9s ease-in-out infinite alternate; }
+.status-banner.game-over       { background: var(--gold);         color: var(--ocean-deep); font-size: 1.15rem; }
+
+@keyframes pulse { from { opacity: 0.8; } to { opacity: 1; } }
+
+/* === CONTROLS === */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 20px;
+  flex-wrap: wrap;
 }
 
+.btn {
+  padding: 9px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
+  letter-spacing: 0.4px;
+}
+.btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.35); }
+.btn:active:not(:disabled) { transform: translateY(0); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary   { background: var(--gold);        color: var(--ocean-deep); }
+.btn-primary:hover:not(:disabled) { background: #f8d060; }
+.btn-secondary { background: var(--ocean-light); color: var(--text-light); border: 1px solid var(--water-line); }
+
+/* === GAME AREA === */
+.game-area {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 8px 16px 16px;
+}
+
+/* === BOARD SECTION === */
+.board-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.board-title {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* === GRID LAYOUT (labels + cells) === */
+.grid-wrapper { display: inline-block; }
+
+.col-labels {
+  display: flex;
+  margin-left: var(--row-label-w);
+}
+.col-labels .label-cell {
+  width: var(--cell-size);
+  height: var(--col-label-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.grid-body { display: flex; }
+
+.row-labels { display: flex; flex-direction: column; width: var(--row-label-w); }
+.row-labels .label-cell {
+  width: var(--row-label-w);
+  height: var(--cell-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+/* === GRID === */
 .grid {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(10, var(--cell-size));
+  grid-template-rows:    repeat(10, var(--cell-size));
+  border: 2px solid var(--water-line);
+  border-radius: 4px;
+  overflow: hidden;
 }
 
-canvas {
-    border: 2px solid black;
+/* === CELL === */
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: 1px solid var(--water-line);
+  background: var(--ocean-cell);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--cell-size) * 0.55);
+  line-height: 1;
+  transition: background 0.12s;
+  user-select: none;
+  position: relative;
 }
 
-.buttons {
-    margin: 10px;
-    padding: 10px;
-    border-radius: 12px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 10px;
+/* Player ship cells */
+.cell.ship { background: var(--ship-bg); border-color: var(--ship-border); }
+
+/* Computer grid hover (unplayed only) */
+#computer-grid .cell:not(.hit):not(.miss):not(.sunk):hover {
+  background: var(--ocean-hover);
+  cursor: crosshair;
 }
 
-button {
-    padding: 10px;
-    font-size: 22px;
-    border-radius: 12px;
-    border: 1px solid black;
+/* Already-fired cells */
+.cell.hit  { background: var(--hit-bg);  cursor: not-allowed; animation: hitPop  0.3s ease-out; }
+.cell.miss { background: var(--miss-bg); cursor: not-allowed; animation: missPop 0.25s ease-out; }
+.cell.sunk { background: var(--sunk-bg); cursor: not-allowed; }
+
+/* Placement previews */
+.cell.preview-valid   { background: var(--preview-valid)   !important; }
+.cell.preview-invalid { background: var(--preview-invalid) !important; }
+
+/* Disabled computer grid (during computer turn or before game start) */
+#computer-grid.disabled {
+  pointer-events: none;
+  opacity: 0.75;
 }
 
-.board-label {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 22px;
+/* === ANIMATIONS === */
+@keyframes hitPop {
+  0%   { transform: scale(0.4); opacity: 0.3; }
+  65%  { transform: scale(1.2); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+@keyframes missPop {
+  0%   { transform: scale(0.3); opacity: 0.2; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+/* === SHIP LEGEND === */
+.ship-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 150px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: var(--text-light);
+  transition: opacity 0.3s;
+}
+.legend-item.sunk { opacity: 0.35; text-decoration: line-through; }
+.legend-bar-wrap  { display: flex; gap: 2px; }
+.legend-seg {
+  width: 13px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--ship-bg);
+  border: 1px solid var(--ship-border);
+}
+.legend-item.sunk .legend-seg { background: #2a2a3a; border-color: #444; }
+
+/* === BATTLE LOG === */
+.log-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 150px;
+  max-width: 170px;
+  gap: 6px;
+}
+.log-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+}
+.shot-log {
+  width: 100%;
+  height: 470px;
+  overflow-y: auto;
+  background: var(--ocean-mid);
+  border: 1px solid var(--water-line);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+.shot-log::-webkit-scrollbar       { width: 5px; }
+.shot-log::-webkit-scrollbar-track { background: var(--ocean-mid); }
+.shot-log::-webkit-scrollbar-thumb { background: var(--water-line); border-radius: 3px; }
+
+.log-entry { margin-bottom: 3px; padding: 2px 5px; border-radius: 3px; }
+.log-entry.player-hit  { color: #ff8888; background: rgba(231,76,60,0.14); }
+.log-entry.player-miss { color: var(--text-muted); }
+.log-entry.comp-hit    { color: #ffaaaa; background: rgba(231,76,60,0.08); }
+.log-entry.comp-miss   { color: var(--text-muted); font-style: italic; }
+.log-entry.sunk-msg    { color: var(--gold); font-weight: 700; border-left: 2px solid var(--gold); padding-left: 6px; }
+
+/* === PLACEMENT PANEL === */
+.placement-panel {
+  text-align: center;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--water-line);
+  margin-top: 4px;
+}
+.placement-panel h3 {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.ship-dock {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.dock-ship {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: border-color 0.18s, transform 0.18s, opacity 0.25s;
+}
+.dock-ship:hover:not(.placed) { transform: translateY(-3px); border-color: var(--water-line); }
+.dock-ship.selected           { border-color: var(--gold); background: rgba(240,192,64,0.1); }
+.dock-ship.placed             { opacity: 0.25; cursor: default; pointer-events: none; }
+
+.dock-ship-bar          { display: flex; gap: 3px; }
+.dock-ship-bar.vertical { flex-direction: column; }
+.dock-ship-seg {
+  width: 22px;
+  height: 22px;
+  background: var(--ship-bg);
+  border: 1px solid var(--ship-border);
+  border-radius: 3px;
+}
+.dock-ship-name { font-size: 0.68rem; color: var(--text-muted); text-align: center; }
+
+.placement-hint { font-size: 0.78rem; color: var(--text-muted); }
+.placement-hint kbd {
+  background: var(--ocean-light);
+  border: 1px solid var(--water-line);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  color: var(--text-light);
+}
+
+/* === NOTIFICATION TOAST === */
+.notification {
+  position: fixed;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ocean-light);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 11px 26px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  z-index: 100;
+  box-shadow: 0 4px 22px rgba(0,0,0,0.5);
+  transition: opacity 0.4s;
+  white-space: nowrap;
+}
+.notification.hidden { opacity: 0; pointer-events: none; }
+
+/* === GAME-OVER OVERLAY === */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(5px);
+}
+.overlay.hidden { display: none; }
+
+.overlay-content {
+  background: var(--ocean-mid);
+  border: 2px solid var(--gold);
+  border-radius: 16px;
+  padding: 44px 56px;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+  max-width: 360px;
+  animation: overlayIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes overlayIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.overlay-icon       { font-size: 3.6rem; margin-bottom: 14px; }
+.overlay-content h2 { font-size: 2rem; color: var(--gold); margin-bottom: 8px; }
+.overlay-content p  { color: var(--text-muted); margin-bottom: 26px; font-size: 0.95rem; }
+
+/* === RESPONSIVE === */
+@media (max-width: 960px) {
+  .log-section {
+    order: 10;
+    min-width: 100%;
+    max-width: 500px;
+  }
+  .shot-log { height: 130px; }
+  .game-area { flex-wrap: wrap; }
+}
+
+@media (max-width: 580px) {
+  :root { --cell-size: 32px; --row-label-w: 22px; }
+
+  .game-area { flex-direction: column; align-items: center; gap: 14px; }
+  .board-section { width: 100%; align-items: center; }
+
+  .cell { font-size: calc(var(--cell-size) * 0.6); }
+
+  .controls { gap: 8px; }
+  .btn { padding: 8px 14px; font-size: 0.85rem; }
+
+  .overlay-content { padding: 30px 28px; }
+  .overlay-content h2 { font-size: 1.5rem; }
+}
+
+@media (max-width: 400px) {
+  :root { --cell-size: 27px; --row-label-w: 18px; }
+  .col-labels .label-cell { font-size: 0.6rem; }
+  .row-labels .label-cell  { font-size: 0.6rem; }
 }
